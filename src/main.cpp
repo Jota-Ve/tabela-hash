@@ -13,7 +13,7 @@ using fmt::print;
 
 void testRecuperaChaveComTabelaVaziaIgualZero() {
   TabelaHash tabela;
-  assert(tabela.recupera("a") == 0);
+  assert(tabela.recupera("a") == 0);  // NOLINT
   print("Sucesso: testRecuperaChaveComTabelaVaziaIgualZero()\n");
 }
 

@@ -23,6 +23,14 @@ using scn::scan;   // NOLINT
 constexpr int TAM{3};
 
 class TabelaHash {
+  /* Lista do que fazer
+  TODO: Implementar redimensionamento da tabela
+  TODO: Melhorar função de hash
+  TODO: Cronometrar perfomance da tabela
+
+  ?: Implementar biblioteca de testes ?
+  */
+
  public:
   bool insere(std::string chave, int valor) {
     print("Inserindo chave \"{}\"\n", chave);
