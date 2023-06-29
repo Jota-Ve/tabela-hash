@@ -19,8 +19,10 @@
 
 using fmt::print;  // NOLINT
 using scn::scan;   // NOLINT
+namespace tbh {
 
 constexpr int TAM{3};
+constexpr int VALOR_FALHA{0};
 
 class TabelaHash {
   /* Lista do que fazer
@@ -70,7 +72,7 @@ class TabelaHash {
     if (idxChave == chave) return this->valorNoIndex(idx);
 
     // Não encontrou a chave, retorna valor de falha
-    return 0;
+    return VALOR_FALHA;
   }
 
   int tamanho() { return this->N; }
@@ -88,3 +90,4 @@ class TabelaHash {
 
   int valorNoIndex(int idx) { return std::get<1>(this->items.at(idx)); }
 };
+}  // namespace tbh
