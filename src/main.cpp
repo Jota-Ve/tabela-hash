@@ -2,6 +2,7 @@
 // Copyright (C) 2023 - Prof. Igor Machado Coelho
 // ?(jota-ve): Devo atualizar o copyright acima para os integrantes do grupo
 
+#include <cassert>
 #include <memory>
 //
 #include <fmt/core.h>  // NOLINT
@@ -10,9 +11,15 @@
 
 using fmt::print;
 
+void testRecuperaChaveComTabelaVaziaIgualZero() {
+  TabelaHash tabela;
+  assert(tabela.recupera("a") == 0);
+  print("Sucesso: testRecuperaChaveComTabelaVaziaIgualZero()\n");
+}
+
 int main() {
   TabelaHash tabela;
-
+  testRecuperaChaveComTabelaVaziaIgualZero();
   tabela.insere("teste1", 1);
   tabela.insere("teste2", 2);
   tabela.insere("teste3", 3);
