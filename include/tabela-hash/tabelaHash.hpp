@@ -12,16 +12,18 @@
 #include <math.h>
 
 #include <array>
+#include <cmath>
 #include <iostream>
 #include <string>
 #include <tuple>
+
 //
 
 using fmt::print;  // NOLINT
 using scn::scan;   // NOLINT
 namespace tbh {
 
-constexpr int TAM{3};
+constexpr int TAM{6047};
 constexpr int VALOR_FALHA{0};
 
 class TabelaHash {
@@ -41,11 +43,14 @@ class TabelaHash {
     int idx = this->hash(chave);
     auto idxChave = this->chaveNoIndex(idx);
 
+    int cont{0};
     // Enquanto idx estiver ocupado com outra chave, atualiza idx
     while ((idxChave != "") && (idxChave != chave)) {
       idx = (idx + 1) % TAM;
       idxChave = this->chaveNoIndex(idx);
+      cont++;
     }
+    // if (cont) print("\"{}\": {}\n", chave, cont);
 
     // Guardando novo chave-valor ou atualizando valor de chave existente
     this->items.at(idx) = std::make_tuple(chave, valor);
@@ -82,6 +87,12 @@ class TabelaHash {
   int N{0};
 
   int hash(std::string chave) {
+    int soma{1};
+    for (auto x : chave) {
+      soma *= static_cast<int>(x) + 1;
+    }
+    return static_cast<int>((soma) % TAM);
+
     auto idx = static_cast<int>(chave.length()) % TAM;
     return idx;
   }
