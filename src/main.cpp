@@ -7,29 +7,13 @@
 //
 #include <fmt/core.h>  // NOLINT
 
+#include <../tests/test.hpp>
 #include <tabela-hash/tabelaHash.hpp>
 
 using fmt::print;
 
-void testRecuperaChaveComTabelaVaziaIgualZero() {
-  TabelaHash tabela;
-  assert(tabela.recupera("a") == 0);  // NOLINT
-  print("Sucesso: testRecuperaChaveComTabelaVaziaIgualZero()\n");
-}
-
 int main() {
-  TabelaHash tabela;
-  testRecuperaChaveComTabelaVaziaIgualZero();
-  tabela.insere("teste1", 1);
-  tabela.insere("teste2", 2);
-  tabela.insere("teste3", 3);
-  tabela.insere("este valor deveria ser 47", 47);
-
-  print("teste1: {}\n", tabela.recupera("teste1"));
-  print("teste2: {}\n", tabela.recupera("teste2"));
-  print("teste3: {}\n", tabela.recupera("teste3"));
-  print("este valor deveria ser 47: {}\n",
-        tabela.recupera("este valor deveria ser 47"));
+  testTudo();
   return 0;
 }
 
