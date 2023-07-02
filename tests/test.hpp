@@ -4,6 +4,7 @@
 //
 #include <fmt/core.h>  // NOLINT
 
+#include <string>
 #include <tabela-hash/tabelaHash.hpp>
 
 using fmt::print;  // NOLINT
@@ -65,7 +66,18 @@ void testRemove() {
   assert(!tabela.busca("a").has_value());  // NOLINT
   assert(tabela.tamanho() == 0);           // NOLINT
 
-  print("Sucesso: testRemoveTabelaVazia()\n");
+  print("Sucesso: testRemove()\n");
+}
+
+void testRemoveTudo() {
+  tbh::TabelaHash tabela;
+  for (int i = 0; i < tbh::TAM; i++) tabela.insere(std::to_string(i), i);
+
+  for (int i = 0; i < tbh::TAM; i++)
+    assert(tabela.remove(std::to_string(i)) == i);  // NOLINT
+  assert(tabela.tamanho() == 0);                    // NOLINT
+
+  print("Sucesso: testRemoveTudo()\n");
 }
 
 void testTudo() {
@@ -75,4 +87,5 @@ void testTudo() {
   testInsereTabelaCheia();
   testRemoveTabelaVazia();
   testRemove();
+  testRemoveTudo();
 }
