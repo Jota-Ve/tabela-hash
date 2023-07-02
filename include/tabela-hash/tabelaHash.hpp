@@ -87,14 +87,15 @@ class TabelaHash {
   int N{0};
 
   int hash(std::string chave) {
-    int soma{1};
-    for (auto x : chave) {
-      soma *= static_cast<int>(x) + 1;
-    }
-    return static_cast<int>((soma) % TAM);
+    // Valor inicial é um número primo.
+    int hash{7};
 
-    auto idx = static_cast<int>(chave.length()) % TAM;
-    return idx;
+    // Multiplica o hash atual pelo nº primo 31 e soma com caractére, para cada
+    // caractére.
+    for (auto c : chave) hash = hash * 31 + c;
+
+    // Garante que o retorno não vai ser maior que a tabela.
+    return static_cast<int>((hash) % TAM);
   }
 
   std::string chaveNoIndex(int idx) { return std::get<0>(this->items.at(idx)); }
