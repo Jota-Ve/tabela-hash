@@ -8,32 +8,33 @@
 
 using fmt::print;  // NOLINT
 
-void testRecuperaChaveComTabelaVaziaIgualZero() {
+void testBuscaChaveComTabelaVaziaIgualZero() {
   tbh::TabelaHash tabela;
-  assert(!tabela.recupera("a").has_value());  // NOLINT
-  print("Sucesso: testRecuperaChaveComTabelaVaziaIgualZero()\n");
+  assert(!tabela.busca("a").has_value());  // NOLINT
+  print("Sucesso: testBuscaChaveComTabelaVaziaIgualZero()\n");
 }
 
-void testRecuperaChaveInexistente() {
+void testBuscaChaveInexistente() {
   tbh::TabelaHash tabela;
-
+  print("Inserindo\n");
   tabela.insere("a", 1);
-  assert(tabela.recupera("b") == tbh::VALOR_FALHA);  // NOLINT
-  print("Sucesso: testRecuperaChaveInexistente()\n");
+  print("Buscando\n");
+  assert(tabela.busca("b") == tbh::VALOR_FALHA);  // NOLINT
+  print("Sucesso: testBuscaChaveInexistente()\n");
 }
 
-void testRecupera() {
+void testBusca() {
   tbh::TabelaHash tabela;
 
   assert(tabela.insere("teste1", 1) == true);  // NOLINT
   assert(tabela.insere("teste2", 2) == true);  // NOLINT
   assert(tabela.insere("teste3", 3) == true);  // NOLINT
 
-  assert(tabela.recupera("teste1") == 1);  // NOLINT
-  assert(tabela.recupera("teste2") == 2);  // NOLINT
-  assert(tabela.recupera("teste3") == 3);  // NOLINT
+  assert(tabela.busca("teste1") == 1);  // NOLINT
+  assert(tabela.busca("teste2") == 2);  // NOLINT
+  assert(tabela.busca("teste3") == 3);  // NOLINT
 
-  print("Sucesso: testRecupera()\n");
+  print("Sucesso: testBusca()\n");
 }
 
 void testInsereTabelaCheia() {
@@ -59,18 +60,18 @@ void testRemoveTabelaVazia() {
 void testRemove() {
   tbh::TabelaHash tabela;
 
-  tabela.insere("a", 1);                      // NOLINT
-  tabela.remove("a");                         // NOLINT
-  assert(!tabela.recupera("a").has_value());  // NOLINT
-  assert(tabela.tamanho() == 0);              // NOLINT
+  tabela.insere("a", 1);                   // NOLINT
+  tabela.remove("a");                      // NOLINT
+  assert(!tabela.busca("a").has_value());  // NOLINT
+  assert(tabela.tamanho() == 0);           // NOLINT
 
   print("Sucesso: testRemoveTabelaVazia()\n");
 }
 
 void testTudo() {
-  testRecuperaChaveComTabelaVaziaIgualZero();
-  testRecuperaChaveInexistente();
-  testRecupera();
+  testBuscaChaveComTabelaVaziaIgualZero();
+  testBuscaChaveInexistente();
+  testBusca();
   testInsereTabelaCheia();
   testRemoveTabelaVazia();
   testRemove();

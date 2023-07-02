@@ -23,16 +23,19 @@
 using fmt::print;  // NOLINT
 using scn::scan;   // NOLINT
 namespace tbh {
+using std::optional;                                               // NOLINT
+using chaveValor_t = std::optional<std::tuple<std::string, int>>;  // NOLINT
 
-constexpr int TAM{50};
+constexpr int TAM{7007};
 constexpr auto VALOR_FALHA{std::nullopt};
-constexpr auto VAZIO{""};
-constexpr auto REMOVIDO{std::nullopt};
+constexpr auto VAZIO{std::nullopt};
+constexpr auto REMOVIDO{std::make_tuple("", -1)};
 
 class TabelaHash {
   /* Lista do que fazer
+  TODO: Testar se os valores removidos compartilham memória
   // TODO: Implementar funçao de remover
-  //   TODO: Mudar retorno para std::optional<T>
+  //   TODO: Mudar retorno para optional<T>
       TODO: Mudar tipo do valor para Template
 
   TODO: Implementar redimensionamento da tabela
@@ -51,18 +54,16 @@ class TabelaHash {
 
  public:
   bool insere(std::string chave, int valor) {
-    // Se estiver cheia, recusa inserção
-    if (this->tamanho() == TAM) return false;
+    // Recusa caso tabela esteja cheia ou chave seja
+    // a mesma usada para marcar item removido
+    if (this->tamanho() == TAM || chave == std::get<0>(REMOVIDO)) return false;
 
     int idx = this->hash(chave);
-    auto chaveNoIdx = this->chaveNoIndex(idx);
-
-    // Se a chaveNoIdx for nullopt ou igual a chave, encerra o loop e insere
-    // nesse idx
-    while ((chaveNoIdx.value_or(chave) != chave)) {
+    // para se encontrar a chave ou um index ainda não utilizado
+    while (this->indexUtilizado(idx) &&
+           this->chaveNoIndex(idx).value() != chave)
       idx = (idx + 1) % TAM;
-      chaveNoIdx = this->chaveNoIndex(idx);
-    }
+
     // print("{}/{}/{}: chaveNoIdx={}, chave={}\n", idx, colisoes, TAM,
     //       chaveNoIdx->empty(), chave);
 
@@ -73,7 +74,7 @@ class TabelaHash {
     return true;
   }
 
-  std::optional<int> recupera(std::string chave) {
+  optional<int> busca(std::string chave) {
     //
     int idx{this->hash(chave)};
     auto chaveNoIdx{this->chaveNoIndex(idx)};
@@ -82,21 +83,24 @@ class TabelaHash {
     // Verifica a próxima enquanto:
     // 1: não possuir chave ou possuir chave diferente da requisitada
     // 2: não percorreu toda a tabela
-    while ((!chaveNoIdx.has_value() || chaveNoIdx.value() != chave) &&
+    while ((chaveNoIdx.has_value() && chaveNoIdx.value() != chave) &&
            (colisoes < TAM - 1)) {
+      // print("{}/{}/{}: chaveNoIdx.has_value()={}, chave={}\n", idx, colisoes,
+      //       TAM, chaveNoIdx.has_value(), chave);
       idx = (idx + 1) % TAM;
       chaveNoIdx = this->chaveNoIndex(idx);
       colisoes++;
     }
 
     // Se encontrou a chave no idx, retorna seu valor
-    if (chaveNoIdx == chave) return this->valorNoIndex(idx);
+    if (chaveNoIdx.has_value() && chaveNoIdx.value() == chave)
+      return this->valorNoIndex(idx);
 
     // Não encontrou a chave, retorna valor de falha
     return VALOR_FALHA;
   }
 
-  std::optional<int> remove(std::string chave) {
+  optional<int> remove(std::string chave) {
     int idx{this->hash(chave)};
     auto chaveNoIdx{this->chaveNoIndex(idx)};
     int colisoes{0};
@@ -104,7 +108,7 @@ class TabelaHash {
     // Verifica a próxima enquanto:
     // 1: não possuir chave ou possuir chave diferente da requisitada
     // 2: não percorreu toda a tabela
-    while ((!chaveNoIdx.has_value() || chaveNoIdx.value() != chave) &&
+    while ((chaveNoIdx.has_value() && chaveNoIdx.value() != chave) &&
            (colisoes < TAM - 1)) {
       idx = (idx + 1) % TAM;
       chaveNoIdx = this->chaveNoIndex(idx);
@@ -115,20 +119,20 @@ class TabelaHash {
     if (chaveNoIdx.has_value() && chaveNoIdx.value() == chave) {
       auto valor = this->valorNoIndex(idx);
       // Marca posição como removida
-      this->items.at(idx) = std::make_tuple(REMOVIDO, -1);
+      this->items.at(idx) = REMOVIDO;
 
       this->N--;
       return valor;
     }
 
-    // CHave não estava na tabela
+    // Chave não estava na tabela
     return std::nullopt;
   }
 
   int tamanho() { return this->N; }
 
  private:
-  std::array<std::tuple<std::optional<std::string>, int>, TAM> items;
+  std::array<chaveValor_t, TAM> items;
   int N{0};
 
   int hash(std::string chave) {
@@ -143,10 +147,23 @@ class TabelaHash {
     return static_cast<int>((hash) % TAM);
   }
 
-  std::optional<std::string> chaveNoIndex(int idx) {
-    return std::get<0>(this->items.at(idx));
+  optional<std::string> chaveNoIndex(int idx) {
+    auto item = this->items.at(idx);
+    if (item.has_value()) return std::get<0>(item.value());
+    return std::nullopt;
   }
 
-  int valorNoIndex(int idx) { return std::get<1>(this->items.at(idx)); }
+  optional<int> valorNoIndex(int idx) {
+    auto item = this->items.at(idx);
+    if (item.has_value()) return std::get<1>(item.value());
+    return std::nullopt;
+  }
+
+  bool indexUtilizado(int idx) { return this->items.at(idx).has_value(); }
+
+  bool indexRemovido(int idx) {
+    return (this->items.at(idx).has_value() &&
+            this->items.at(idx).value() == REMOVIDO);
+  }
 };
 }  // namespace tbh
