@@ -24,6 +24,8 @@ void arrayEmbaralhado(std::array<int, tbh::TAM>* arr) {
 }
 
 void benchmarkInserir() {
+  print("benchmark inserir\n");
+
   tbh::TabelaHash tb;
 
   std::ofstream arquivo;
@@ -31,33 +33,65 @@ void benchmarkInserir() {
   arquivo.open("../benchmark/inserir.csv", std::ios::out);
   arquivo << "TamanhoTabela"
           << ";"
-          << "MicroSeg"
-          << ";"
-          << "Chave"
-          << ";"
-          << "Valor"
+          << "NanoSeg"
           << "\n";
 
-  std::array<int, tbh::TAM> arr{};
-  arrayEmbaralhado(&arr);
-
-  for (int i = 0; i < tbh::TAM; i++) {
-    auto chave = std::to_string(arr.at(i));
+  for (auto i = 0; i < tbh::TAM; i++) {
+    auto chave = std::to_string(i);
     auto valor = i;
+
+    auto tabTamanho = tb.tamanho();
 
     auto inicio = std::chrono::steady_clock::now();  // NOLINT
     tb.insere(chave, valor);
     auto fim = std::chrono::steady_clock::now();
 
     auto duracao = fim - inicio;
-    auto microSeg =
-        std::chrono::duration_cast<std::chrono::microseconds>(duracao).count();
+    auto NanoSeg =
+        std::chrono::duration_cast<std::chrono::nanoseconds>(duracao).count();
 
-    arquivo << tb.tamanho() << ";" << microSeg << ";" << chave << ";" << valor
-            << "\n";
+    arquivo << tabTamanho << ";" << NanoSeg << "\n";
   }
+  arquivo.close();
 }
+
+void benchmarkBusca() {
+  print("benchmark buscar\n");
+
+  tbh::TabelaHash tb;
+
+  std::ofstream arquivo;
+
+  arquivo.open("../benchmark/buscar.csv", std::ios::out);
+  arquivo << "TamanhoTabela"
+          << ";"
+          << "NanoSeg"
+          << "\n";
+
+  for (int i = 0; i < tbh::TAM; i++) {
+    auto chave = std::to_string(i);
+    auto valor = i;
+    tb.insere(chave, valor);
+    auto tabTamanho = tb.tamanho();
+
+    auto inicio = std::chrono::steady_clock::now();  // NOLINT
+
+    tb.busca(chave);
+
+    auto fim = std::chrono::steady_clock::now();
+
+    auto duracao = fim - inicio;
+    auto NanoSeg =
+        std::chrono::duration_cast<std::chrono::nanoseconds>(duracao).count();
+
+    arquivo << tabTamanho << ";" << NanoSeg << "\n";
+  }
+  arquivo.close();
+}
+
 void benchmarkRemover() {
+  print("benchmark remover\n");
+
   tbh::TabelaHash tb;
 
   std::ofstream arquivo;
@@ -65,30 +99,35 @@ void benchmarkRemover() {
   arquivo.open("../benchmark/remover.csv", std::ios::out);
   arquivo << "TamanhoTabela"
           << ";"
-          << "MicroSeg"
-          << ";"
-          << "Chave"
-          << ";"
-          << "Valor"
+          << "NanoSeg"
           << "\n";
 
-  std::array<int, tbh::TAM> arr{};
-  arrayEmbaralhado(&arr);
+  // for (int i = 0; i < tbh::TAM; i++) {
+  //   auto chave = std::to_string(i);
+  //   auto valor = i;
+  //   tb.insere(chave, valor);
+  // }
 
   for (int i = 0; i < tbh::TAM; i++) {
-    auto chave = std::to_string(arr.at(i));
+    auto chave1 = std::to_string(i);
+    auto chave2 = std::to_string(i + 1);
     auto valor = i;
 
+    tb.insere(chave1, valor);
+    tb.insere(chave2, valor);
+
+    auto tabTamanho = tb.tamanho();
     auto inicio = std::chrono::steady_clock::now();  // NOLINT
-    tb.insere(chave, valor);
+    tb.remove(chave2);
     auto fim = std::chrono::steady_clock::now();
 
     auto duracao = fim - inicio;
-    auto microSeg =
-        std::chrono::duration_cast<std::chrono::microseconds>(duracao).count();
+    auto NanoSeg =
+        std::chrono::duration_cast<std::chrono::nanoseconds>(duracao).count();
 
-    arquivo << tb.tamanho() << ";" << microSeg << ";" << chave << ";" << valor
-            << "\n";
+    arquivo << tabTamanho << ";" << NanoSeg << "\n";
   }
+
+  arquivo.close();
 }
 };  // namespace bcmk

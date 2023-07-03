@@ -16,6 +16,8 @@ using fmt::print;
 int main() {
   // testTudo();
   bcmk::benchmarkInserir();
+  bcmk::benchmarkBusca();
+  bcmk::benchmarkRemover();
   return 0;
 }
 

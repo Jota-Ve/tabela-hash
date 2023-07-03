@@ -77,4 +77,8 @@
         "random": "cpp"
     },
     "cmake.sourceDirectory": "${workspaceFolder}/.",
+    "[python]": {
+        "editor.defaultFormatter": "ms-python.autopep8"
+    },
+    "python.formatting.provider": "none",
 }

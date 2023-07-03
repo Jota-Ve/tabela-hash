@@ -26,24 +26,22 @@ namespace tbh {
 using std::optional;                                               // NOLINT
 using chaveValor_t = std::optional<std::tuple<std::string, int>>;  // NOLINT
 
-constexpr int TAM{8007};
+constexpr int TAM{50007};
 constexpr auto VALOR_FALHA{std::nullopt};
 constexpr auto VAZIO{std::nullopt};
 constexpr auto REMOVIDO{std::make_tuple("", -1)};
 
 class TabelaHash {
   /* Lista do que fazer
-  TODO: Testar se os valores removidos compartilham memória
   // TODO: Implementar funçao de remover
   //   TODO: Mudar retorno para optional<T>
       TODO: Mudar tipo do valor para Template
 
   TODO: Implementar redimensionamento da tabela
 
-  TODO: Cronometrar perfomance da tabela
+  // TODO: Cronometrar perfomance da tabela
 
-  TODO: Função para testar se a ordem dos caractéres gera hash diferente
-    ?: Função que retorna a quantidade de colisões ?
+  ?: Função que retorna a quantidade de colisões ?
 
   TODO: Usar dados de + alunos da UFF
 
