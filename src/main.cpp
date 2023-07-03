@@ -7,13 +7,15 @@
 //
 #include <fmt/core.h>  // NOLINT
 
+#include <../benchmark/benchmark.hpp>
 #include <../tests/test.hpp>
 #include <tabela-hash/tabelaHash.hpp>
 
 using fmt::print;
 
 int main() {
-  testTudo();
+  // testTudo();
+  bcmk::benchmarkInserir();
   return 0;
 }
 
