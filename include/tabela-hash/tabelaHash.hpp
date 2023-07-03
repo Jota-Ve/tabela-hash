@@ -26,7 +26,7 @@ namespace tbh {
 using std::optional;                                               // NOLINT
 using chaveValor_t = std::optional<std::tuple<std::string, int>>;  // NOLINT
 
-constexpr int TAM{7007};
+constexpr int TAM{8007};
 constexpr auto VALOR_FALHA{std::nullopt};
 constexpr auto VAZIO{std::nullopt};
 constexpr auto REMOVIDO{std::make_tuple("", -1)};
