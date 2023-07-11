@@ -144,24 +144,27 @@ class TabelaHash {
     while ((chaveNoIdx.has_value() && chaveNoIdx.value() != chave) &&
            (colisoes < items.size() - 1)) {
       idx = (idx + 1) % items.size();
-      chaveNoIdx = std::get<0>(items.at(idx).value());
+      it = items.at(idx);
+
+      if (it.has_value())
+        chaveNoIdx = std::get<0>(it.value());
+      else
+        chaveNoIdx = VAZIO;
+
       colisoes++;
     }
 
     // Achou a chave
     if (chaveNoIdx.has_value() && chaveNoIdx.value() == chave) {
-      // print("removendo {} no idx {}\n", chave, idx);
-
-      auto valor = std::get<1>(items.at(idx).value());
+      auto valor = std::get<1>(it.value());
       // Marca posição como removida
-      this->items.at(idx) = REMOVIDO;
-
-      this->N--;
+      items.at(idx) = REMOVIDO;
+      N--;
       return valor;
     }
 
     // Chave não estava na tabela
-    return std::nullopt;
+    return VALOR_FALHA;
   }
 
   int tamanho() { return N; }
