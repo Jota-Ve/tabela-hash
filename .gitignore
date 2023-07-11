@@ -2,4 +2,8 @@
 app*
 aplicacao
 build/
+
+.cache
+
 *.csv
+*.txt
