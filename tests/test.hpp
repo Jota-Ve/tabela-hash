@@ -52,6 +52,16 @@ void testCrescimentoDaTabela() {
   print("Sucesso: testCrescimentoDaTabela()\n");
 }
 
+void testEncontraItemAposRedimensionarTabela() {
+  tbh::TabelaHash tabela;
+
+  for (int i = 0; i < tbh::TAM_INICIAL * 2; i++)
+    assert(tabela.insere(std::to_string(i), i) == true);  // NOLINT
+
+  for (int i = 0; i < tbh::TAM_INICIAL * 2; i++)
+    assert(tabela.busca(std::to_string(i)).value_or(-1) == i);  // NOLINT
+}
+
 void testRemoveTabelaVazia() {
   tbh::TabelaHash tabela;
 
@@ -72,12 +82,19 @@ void testRemove() {
 
 void testRemoveTudo() {
   tbh::TabelaHash tabela;
+  print("Inserindo\n");
   for (int i = 0; i < tbh::TAM_INICIAL; i++)
     tabela.insere(std::to_string(i), i);
 
-  for (int i = 0; i < tbh::TAM_INICIAL; i++)
+  print("Removendo\n");
+  for (int i = 0; i < tbh::TAM_INICIAL; i++) {
+    auto valor = tabela.busca(std::to_string(i));
+    assert(valor.has_value());
+    print("\"{}\": {}", std::to_string(i), valor.value());
     assert(tabela.remove(std::to_string(i)) == i);  // NOLINT
-  assert(tabela.tamanho() == 0);                    // NOLINT
+  }
+  print("Confere tamanho\n");
+  assert(tabela.tamanho() == 0);  // NOLINT
 
   print("Sucesso: testRemoveTudo()\n");
 }
@@ -87,6 +104,7 @@ void testTudo() {
   testBuscaChaveInexistente();
   testBusca();
   testCrescimentoDaTabela();
+  testEncontraItemAposRedimensionarTabela();
   testRemoveTabelaVazia();
   testRemove();
   testRemoveTudo();
