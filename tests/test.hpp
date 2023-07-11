@@ -39,17 +39,17 @@ void testBusca() {
   print("Sucesso: testBusca()\n");
 }
 
-void testInsereTabelaCheia() {
+void testCrescimentoDaTabela() {
   tbh::TabelaHash tabela;
 
-  for (int i = 1; i <= tbh::TAM; i++) {
+  for (int i = 1; i <= tbh::TAM_INICIAL; i++) {
     assert(tabela.insere(std::to_string(i), i) == true);  // NOLINT
     assert(tabela.tamanho() == i);                        // NOLINT
   }
 
-  assert(tabela.tamanho() == tbh::TAM);          // NOLINT
-  assert(tabela.insere("iqhoqb", 10) == false);  // NOLINT
-  print("Sucesso: testInsereTabelaCheia()\n");
+  assert(tabela.insere("iqhoqb", 10) == true);       // NOLINT
+  assert(tabela.tamanho() == tbh::TAM_INICIAL + 1);  // NOLINT
+  print("Sucesso: testCrescimentoDaTabela()\n");
 }
 
 void testRemoveTabelaVazia() {
@@ -72,9 +72,10 @@ void testRemove() {
 
 void testRemoveTudo() {
   tbh::TabelaHash tabela;
-  for (int i = 0; i < tbh::TAM; i++) tabela.insere(std::to_string(i), i);
+  for (int i = 0; i < tbh::TAM_INICIAL; i++)
+    tabela.insere(std::to_string(i), i);
 
-  for (int i = 0; i < tbh::TAM; i++)
+  for (int i = 0; i < tbh::TAM_INICIAL; i++)
     assert(tabela.remove(std::to_string(i)) == i);  // NOLINT
   assert(tabela.tamanho() == 0);                    // NOLINT
 
@@ -85,7 +86,7 @@ void testTudo() {
   testBuscaChaveComTabelaVaziaIgualZero();
   testBuscaChaveInexistente();
   testBusca();
-  testInsereTabelaCheia();
+  testCrescimentoDaTabela();
   testRemoveTabelaVazia();
   testRemove();
   testRemoveTudo();

@@ -10,13 +10,15 @@
 #include <scn/scn.h>
 // C++ includes
 #include <math.h>
+#include <sys/types.h>
 
-#include <array>
 #include <cmath>
+#include <cstdlib>
 #include <iostream>
 #include <optional>
 #include <string>
 #include <tuple>
+#include <vector>
 
 //
 
@@ -26,7 +28,7 @@ namespace tbh {
 using std::optional;                                               // NOLINT
 using chaveValor_t = std::optional<std::tuple<std::string, int>>;  // NOLINT
 
-constexpr int TAM{50007};
+constexpr int TAM_INICIAL{127};
 constexpr auto VALOR_FALHA{std::nullopt};
 constexpr auto VAZIO{std::nullopt};
 constexpr auto REMOVIDO{std::make_tuple("", -1)};
@@ -51,71 +53,106 @@ class TabelaHash {
   */
 
  public:
+  TabelaHash() { items.resize(TAM_INICIAL, VAZIO); }
+
   bool insere(std::string chave, int valor) {
-    // Recusa caso tabela esteja cheia ou chave seja
-    // a mesma usada para marcar item removido
-    if (this->tamanho() == TAM || chave == std::get<0>(REMOVIDO)) return false;
+    if (chave == std::get<0>(REMOVIDO)) return false;
 
-    int idx = this->hash(chave);
+    auto idx = this->hash(chave) % items.capacity();
+
     // para se encontrar a chave ou um index ainda não utilizado
-    while (this->indexUtilizado(idx) &&
-           this->chaveNoIndex(idx).value() != chave)
-      idx = (idx + 1) % TAM;
+    while (items.at(idx).has_value() && chaveNoIndex(idx).value() != chave) {
+      idx = (idx + 1) % items.capacity();
+    }
 
-    // print("{}/{}/{}: chaveNoIdx={}, chave={}\n", idx, colisoes, TAM,
-    //       chaveNoIdx->empty(), chave);
+    chaveValor_t item = items.at(idx);
+    // Se já existe, apenas atualiza
+    if (item.has_value() && std::get<0>(item.value()) == chave) {
+      std::get<1>(items.at(idx).value()) = valor;
+    } else {
+      items.at(idx) = std::make_tuple(chave, valor);
+      N++;
+    }
 
-    // Guardando novo chave-valor ou atualizando valor de chave existente
-    this->items.at(idx) = std::make_tuple(chave, valor);
-    this->N++;
-
+    if (tamanho() > (items.size() / 2)) aumentaTabela();
+    // else
+    //   print("Tamanho={}, items.size()/2={}\n", tamanho(), items.size() / 2);
     return true;
   }
 
   optional<int> busca(std::string chave) {
     //
-    int idx{this->hash(chave)};
-    auto chaveNoIdx{this->chaveNoIndex(idx)};
-    int colisoes{0};
+    if (chave == std::get<0>(REMOVIDO)) return std::nullopt;
+
+    auto idx{this->hash(chave) % items.capacity()};
+    auto it = items.at(idx);
+
+    std::optional<std::string> chaveNoIdx;
+    if (it.has_value())
+      chaveNoIdx = std::get<0>(it.value());
+    else
+      chaveNoIdx = std::nullopt;
+
+    auto colisoes{0};
 
     // Verifica a próxima enquanto:
     // 1: não possuir chave ou possuir chave diferente da requisitada
     // 2: não percorreu toda a tabela
+    // print("procruando {} no idx {}\n", chave, idx);
     while ((chaveNoIdx.has_value() && chaveNoIdx.value() != chave) &&
-           (colisoes < TAM - 1)) {
+           (colisoes < items.size() - 1)) {
       // print("{}/{}/{}: chaveNoIdx.has_value()={}, chave={}\n", idx, colisoes,
       //       TAM, chaveNoIdx.has_value(), chave);
-      idx = (idx + 1) % TAM;
-      chaveNoIdx = this->chaveNoIndex(idx);
+      // print("procruando {} no idx {}\n", chave, idx);
+      idx = (idx + 1) % items.size();
+
+      auto item = items.at(idx);
+      if (item.has_value())
+        chaveNoIdx = std::get<0>(item.value());
+      else
+        chaveNoIdx = std::nullopt;
+
       colisoes++;
     }
 
     // Se encontrou a chave no idx, retorna seu valor
-    if (chaveNoIdx.has_value() && chaveNoIdx.value() == chave)
-      return this->valorNoIndex(idx);
+    if (chaveNoIdx.has_value() && chaveNoIdx.value() == chave) {
+      return std::get<1>(items.at(idx).value());
+    }
 
     // Não encontrou a chave, retorna valor de falha
     return VALOR_FALHA;
   }
 
   optional<int> remove(std::string chave) {
-    int idx{this->hash(chave)};
-    auto chaveNoIdx{this->chaveNoIndex(idx)};
+    auto idx{this->hash(chave) % items.size()};
+    auto it = items.at(idx);
+
+    std::optional<std::string> chaveNoIdx;
+    if (it.has_value())
+      chaveNoIdx = std::get<0>(it.value());
+    else
+      chaveNoIdx = std::nullopt;
     int colisoes{0};
 
     // Verifica a próxima enquanto:
     // 1: não possuir chave ou possuir chave diferente da requisitada
     // 2: não percorreu toda a tabela
+
+    // print("procurando {} no idx {}\n", chave, idx);
+
     while ((chaveNoIdx.has_value() && chaveNoIdx.value() != chave) &&
-           (colisoes < TAM - 1)) {
-      idx = (idx + 1) % TAM;
-      chaveNoIdx = this->chaveNoIndex(idx);
+           (colisoes < items.size() - 1)) {
+      idx = (idx + 1) % items.size();
+      chaveNoIdx = std::get<0>(items.at(idx).value());
       colisoes++;
     }
 
     // Achou a chave
     if (chaveNoIdx.has_value() && chaveNoIdx.value() == chave) {
-      auto valor = this->valorNoIndex(idx);
+      // print("removendo {} no idx {}\n", chave, idx);
+
+      auto valor = std::get<1>(items.at(idx).value());
       // Marca posição como removida
       this->items.at(idx) = REMOVIDO;
 
@@ -127,10 +164,10 @@ class TabelaHash {
     return std::nullopt;
   }
 
-  int tamanho() { return this->N; }
+  int tamanho() { return N; }
 
  private:
-  std::array<chaveValor_t, TAM> items;
+  std::vector<chaveValor_t> items;
   int N{0};
 
   int hash(std::string chave) {
@@ -142,7 +179,7 @@ class TabelaHash {
     for (auto c : chave) hash = hash * 31 + c;
 
     // Garante que o retorno não vai ser maior que a tabela.
-    return static_cast<int>((hash) % TAM);
+    return static_cast<int>(hash);  // % items.capacity());
   }
 
   optional<std::string> chaveNoIndex(int idx) {
@@ -157,11 +194,28 @@ class TabelaHash {
     return std::nullopt;
   }
 
-  bool indexUtilizado(int idx) { return this->items.at(idx).has_value(); }
-
   bool indexRemovido(int idx) {
     return (this->items.at(idx).has_value() &&
             this->items.at(idx).value() == REMOVIDO);
+  }
+
+  void aumentaTabela() {
+    std::vector<chaveValor_t> novaTabela;
+    novaTabela.resize(items.size() * 2, VAZIO);
+    // print("\nAumentando tamanho {} -> {}\n", items.size(), items.size() * 2);
+
+    for (auto i = 0; i < items.size(); i++) {
+      auto it = items.at(i);
+
+      if (it.has_value()) {
+        ulong idx = i;
+        if (it.value() != REMOVIDO)
+          idx = hash(std::get<0>(it.value())) % novaTabela.size();
+        novaTabela.at(idx) = it.value();
+      }
+    }
+
+    items = novaTabela;
   }
 };
 }  // namespace tbh
