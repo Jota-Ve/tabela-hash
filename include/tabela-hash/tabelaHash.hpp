@@ -13,6 +13,7 @@
 #include <sys/types.h>
 
 #include <cmath>
+#include <cstdint>
 #include <cstdlib>
 #include <iostream>
 #include <optional>
@@ -53,39 +54,38 @@ class TabelaHash {
   */
 
  public:
-  TabelaHash() { items.resize(TAM_INICIAL, VAZIO); }
+  TabelaHash() { itens.resize(TAM_INICIAL, VAZIO); }
 
   bool insere(std::string chave, int valor) {
     if (chave == std::get<0>(REMOVIDO)) return false;
 
-    auto idx = this->hash(chave) % items.capacity();
+    auto idx = this->hash(chave) % itens.capacity();
 
     // para se encontrar a chave ou um index ainda não utilizado
-    while (items.at(idx).has_value() && chaveNoIndex(idx).value() != chave) {
-      idx = (idx + 1) % items.capacity();
+    while (itens.at(idx).has_value() && chaveNoIndex(idx).value() != chave) {
+      idx = (idx + 1) % itens.capacity();
     }
 
-    chaveValor_t item = items.at(idx);
+    chaveValor_t item = itens.at(idx);
     // Se já existe, apenas atualiza
     if (item.has_value() && std::get<0>(item.value()) == chave) {
-      std::get<1>(items.at(idx).value()) = valor;
+      std::get<1>(itens.at(idx).value()) = valor;
     } else {
-      items.at(idx) = std::make_tuple(chave, valor);
+      itens.at(idx) = std::make_tuple(chave, valor);
       N++;
     }
 
-    if (tamanho() > (items.size() / 2)) aumentaTabela();
-    // else
-    //   print("Tamanho={}, items.size()/2={}\n", tamanho(), items.size() / 2);
+    if (tamanho() > (itens.size() / 2)) aumentaTabela();
+
     return true;
   }
 
   optional<int> busca(std::string chave) {
     //
-    if (chave == std::get<0>(REMOVIDO)) return std::nullopt;
+    if (chave == std::get<0>(REMOVIDO)) return VALOR_FALHA;
 
-    auto idx{this->hash(chave) % items.capacity()};
-    auto it = items.at(idx);
+    auto idx{this->hash(chave) % itens.capacity()};
+    auto it = itens.at(idx);
 
     std::optional<std::string> chaveNoIdx;
     if (it.has_value())
@@ -98,15 +98,11 @@ class TabelaHash {
     // Verifica a próxima enquanto:
     // 1: não possuir chave ou possuir chave diferente da requisitada
     // 2: não percorreu toda a tabela
-    // print("procruando {} no idx {}\n", chave, idx);
     while ((chaveNoIdx.has_value() && chaveNoIdx.value() != chave) &&
-           (colisoes < items.size() - 1)) {
-      // print("{}/{}/{}: chaveNoIdx.has_value()={}, chave={}\n", idx, colisoes,
-      //       TAM, chaveNoIdx.has_value(), chave);
-      // print("procruando {} no idx {}\n", chave, idx);
-      idx = (idx + 1) % items.size();
+           (colisoes < itens.size())) {
+      idx = (idx + 1) % itens.size();
 
-      auto item = items.at(idx);
+      auto item = itens.at(idx);
       if (item.has_value())
         chaveNoIdx = std::get<0>(item.value());
       else
@@ -117,7 +113,7 @@ class TabelaHash {
 
     // Se encontrou a chave no idx, retorna seu valor
     if (chaveNoIdx.has_value() && chaveNoIdx.value() == chave) {
-      return std::get<1>(items.at(idx).value());
+      return std::get<1>(itens.at(idx).value());
     }
 
     // Não encontrou a chave, retorna valor de falha
@@ -125,8 +121,8 @@ class TabelaHash {
   }
 
   optional<int> remove(std::string chave) {
-    auto idx{this->hash(chave) % items.size()};
-    auto it = items.at(idx);
+    auto idx{this->hash(chave) % itens.size()};
+    auto it = itens.at(idx);
 
     std::optional<std::string> chaveNoIdx;
     if (it.has_value())
@@ -139,12 +135,10 @@ class TabelaHash {
     // 1: não possuir chave ou possuir chave diferente da requisitada
     // 2: não percorreu toda a tabela
 
-    // print("procurando {} no idx {}\n", chave, idx);
-
     while ((chaveNoIdx.has_value() && chaveNoIdx.value() != chave) &&
-           (colisoes < items.size() - 1)) {
-      idx = (idx + 1) % items.size();
-      it = items.at(idx);
+           (colisoes < itens.size())) {
+      idx = (idx + 1) % itens.size();
+      it = itens.at(idx);
 
       if (it.has_value())
         chaveNoIdx = std::get<0>(it.value());
@@ -158,7 +152,7 @@ class TabelaHash {
     if (chaveNoIdx.has_value() && chaveNoIdx.value() == chave) {
       auto valor = std::get<1>(it.value());
       // Marca posição como removida
-      items.at(idx) = REMOVIDO;
+      itens.at(idx) = REMOVIDO;
       N--;
       return valor;
     }
@@ -170,7 +164,7 @@ class TabelaHash {
   int tamanho() { return N; }
 
  private:
-  std::vector<chaveValor_t> items;
+  std::vector<chaveValor_t> itens;
   int N{0};
 
   int hash(std::string chave) {
@@ -186,39 +180,46 @@ class TabelaHash {
   }
 
   optional<std::string> chaveNoIndex(int idx) {
-    auto item = this->items.at(idx);
+    auto item = this->itens.at(idx);
     if (item.has_value()) return std::get<0>(item.value());
     return std::nullopt;
   }
 
   optional<int> valorNoIndex(int idx) {
-    auto item = this->items.at(idx);
+    auto item = this->itens.at(idx);
     if (item.has_value()) return std::get<1>(item.value());
     return std::nullopt;
   }
 
   bool indexRemovido(int idx) {
-    return (this->items.at(idx).has_value() &&
-            this->items.at(idx).value() == REMOVIDO);
+    return (this->itens.at(idx).has_value() &&
+            this->itens.at(idx).value() == REMOVIDO);
   }
 
   void aumentaTabela() {
-    std::vector<chaveValor_t> novaTabela;
-    novaTabela.resize(items.size() * 2, VAZIO);
-    // print("\nAumentando tamanho {} -> {}\n", items.size(), items.size() * 2);
+    std::vector<chaveValor_t> novoItens;
+    // Preenche a nova tabela com o dobro do tamanho da tabela atual
+    novoItens.resize(itens.size() * 2, VAZIO);
 
-    for (auto i = 0; i < items.size(); i++) {
-      auto it = items.at(i);
+    for (auto antigoIdx = 0; antigoIdx < itens.size(); antigoIdx++) {
+      auto it = itens.at(antigoIdx);
 
-      if (it.has_value()) {
-        ulong idx = i;
-        if (it.value() != REMOVIDO)
-          idx = hash(std::get<0>(it.value())) % novaTabela.size();
-        novaTabela.at(idx) = it.value();
-      }
+      // Ignora valores removidos
+      if (it.value_or(REMOVIDO) == REMOVIDO) continue;
+
+      auto chave = std::get<0>(it.value());
+      auto valorHash = hash(chave);
+
+      // Limita o hash a nova capacidade da tabela
+      auto novoIdx = valorHash % novoItens.capacity();
+      // Enquanto o idx já estiver coupado, vai pro próximo
+      while (novoItens.at(novoIdx).has_value()) novoIdx++;
+      // Guarda o item na nova tabela
+      novoItens.at(novoIdx) = it;
     }
 
-    items = novaTabela;
+    // Atualiza a tabela
+    itens = novoItens;
   }
 };
 }  // namespace tbh
