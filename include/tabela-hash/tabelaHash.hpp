@@ -40,7 +40,7 @@ class TabelaHash {
   //   TODO: Mudar retorno para optional<T>
       TODO: Mudar tipo do valor para Template
 
-  TODO: Implementar redimensionamento da tabela
+  // TODO: Implementar redimensionamento da tabela
 
   // TODO: Cronometrar perfomance da tabela
 
@@ -59,11 +59,12 @@ class TabelaHash {
   bool insere(std::string chave, int valor) {
     if (chave == std::get<0>(REMOVIDO)) return false;
 
-    auto idx = this->hash(chave) % itens.capacity();
+    auto idx = this->hash(chave) % itens.size();
 
     // para se encontrar a chave ou um index ainda não utilizado
-    while (itens.at(idx).has_value() && chaveNoIndex(idx).value() != chave) {
-      idx = (idx + 1) % itens.capacity();
+    while (itens.at(idx).has_value() &&
+           std::get<0>(itens.at(idx).value()) != chave) {
+      idx = (idx + 1) % itens.size();
     }
 
     chaveValor_t item = itens.at(idx);
@@ -75,16 +76,15 @@ class TabelaHash {
       N++;
     }
 
-    if (tamanho() > (itens.size() / 2)) aumentaTabela();
+    if (tamanho() > (itens.size() / 2)) redimensionaTabela(itens.size() * 2);
 
     return true;
   }
 
   optional<int> busca(std::string chave) {
-    //
     if (chave == std::get<0>(REMOVIDO)) return VALOR_FALHA;
 
-    auto idx{this->hash(chave) % itens.capacity()};
+    auto idx{this->hash(chave) % itens.size()};
     auto it = itens.at(idx);
 
     std::optional<std::string> chaveNoIdx;
@@ -154,6 +154,9 @@ class TabelaHash {
       // Marca posição como removida
       itens.at(idx) = REMOVIDO;
       N--;
+
+      // print("{} / {}\n", N, itens.size());
+      if (N < (itens.size() / 8)) redimensionaTabela(itens.size() / 2);
       return valor;
     }
 
@@ -196,24 +199,26 @@ class TabelaHash {
             this->itens.at(idx).value() == REMOVIDO);
   }
 
-  void aumentaTabela() {
+  void redimensionaTabela(uint novoTamanho) {
+    // print("{} -> {}\n", itens.size(), novoTamanho);
     std::vector<chaveValor_t> novoItens;
     // Preenche a nova tabela com o dobro do tamanho da tabela atual
-    novoItens.resize(itens.size() * 2, VAZIO);
+    novoItens.resize(novoTamanho, VAZIO);
 
     for (auto antigoIdx = 0; antigoIdx < itens.size(); antigoIdx++) {
       auto it = itens.at(antigoIdx);
-
-      // Ignora valores removidos
+      // Ignora valores removidos ou vazios
       if (it.value_or(REMOVIDO) == REMOVIDO) continue;
 
       auto chave = std::get<0>(it.value());
       auto valorHash = hash(chave);
 
       // Limita o hash a nova capacidade da tabela
-      auto novoIdx = valorHash % novoItens.capacity();
+      auto novoIdx = valorHash % novoItens.size();
       // Enquanto o idx já estiver coupado, vai pro próximo
-      while (novoItens.at(novoIdx).has_value()) novoIdx++;
+      while (novoItens.at(novoIdx).has_value())
+        novoIdx = (novoIdx + 1) % novoItens.size();
+
       // Guarda o item na nova tabela
       novoItens.at(novoIdx) = it;
     }
